@@ -75,9 +75,11 @@ LRESULT WindowsImpl::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 void WindowsImpl::Message() {
 	while (PeekMessageA(&msg, m_hwnd, 0, 0, PM_REMOVE))
 	{
+		// TODO: Better input managing
 		if (msg.message == WM_KEYDOWN && msg.wParam == 'F')
 		{
-			SetFullscreen();
+			ToggleFullscreen();
+			ToggleCursor();
 		}
 
 		TranslateMessage(&msg);
@@ -90,7 +92,7 @@ bool WindowsImpl::IsWindowClosed()
 	return !WindowsImpl::is_close_window;
 }
 
-void WindowsImpl::SetFullscreen()
+void WindowsImpl::ToggleFullscreen()
 {
 	DEVMODEA dm{};
 	dm.dmSize = sizeof(dm);
@@ -129,4 +131,19 @@ void WindowsImpl::SetFullscreen()
 		m_fullscreen = true;
 	}
 
+}
+
+void WindowsImpl::ToggleCursor()
+{
+	CURSORINFO pci{};
+	pci.cbSize = sizeof(pci);
+	GetCursorInfo(&pci);
+
+	if (pci.flags == CURSOR_SHOWING)
+	{
+		ShowCursor(FALSE);
+	}
+	else {
+		ShowCursor(TRUE);
+	}
 }

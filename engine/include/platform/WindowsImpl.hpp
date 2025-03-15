@@ -10,7 +10,8 @@ public:
 
 	void Message();
 	bool IsWindowClosed();
-	void SetFullscreen();
+	void ToggleFullscreen();
+	void ToggleCursor();
 
 	static bool is_close_window;
 private:
