@@ -1,6 +1,8 @@
 #pragma once
 
+#include <stdexcept>
 #include <windows.h>
+
 
 class WindowsImpl
 {
@@ -12,6 +14,8 @@ public:
 	bool IsWindowClosed();
 	void ToggleFullscreen();
 	void ToggleCursor();
+
+	HWND GetHwnd() { return m_hwnd; }
 
 	static bool is_close_window;
 private:

@@ -1,8 +1,10 @@
 #pragma once
 
 #include "platform/WindowsImpl.hpp"
+#include "render/D3D11Renderer.hpp"
 #include <cstdint>
 #include <memory>
+#include <stdexcept>
 #include <Windows.h>
 
 struct WinEntry {
@@ -33,6 +35,7 @@ private:
 	bool is_running;
 
 	std::unique_ptr<WindowsImpl> window;
+	std::unique_ptr<D3D11Renderer> renderer;
 
 
 

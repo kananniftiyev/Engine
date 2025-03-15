@@ -1,12 +1,11 @@
 #include "App.hpp"
-#include <exception>
-#include <memory>
+
 #include <platform/WindowsImpl.hpp>
-#include <Windows.h>
 
 
 EngineApp::EngineApp(EngineConfig& config) {
 	window = std::make_unique<WindowsImpl>(config.witdh, config.height, config.winEntry.hInstance, config.winEntry.nCmdShow);
+	renderer = std::make_unique<D3D11Renderer>(config.witdh, config.height, config.vsync, window->GetHwnd());
 }
 
 EngineApp::~EngineApp() {
@@ -34,6 +33,7 @@ void EngineApp::MainLoop() {
 	while (is_running)
 	{
 		window->Message();
+		renderer->Frame();
 
 		is_running = window->IsWindowClosed();
 	}

@@ -1,6 +1,4 @@
 #include "platform/WindowsImpl.hpp"
-#include <stdexcept>
-#include <Windows.h>
 
 bool WindowsImpl::is_close_window = false;
 
@@ -30,14 +28,14 @@ void WindowsImpl::InitWindow() {
 		IDI_APPLICATION);
 	wcx.hCursor = LoadCursor(NULL,
 		IDC_ARROW);
-	wcx.lpszMenuName = "MainMenu";
+	wcx.lpszMenuName = class_name;
 	wcx.lpszClassName = class_name;
 	wcx.hIconSm = LoadIcon(m_hInstance, MAKEINTRESOURCE(IDI_APPLICATION));
 
 	RegisterClassEx(&wcx);
 
 	m_hwnd = CreateWindowExA(
-		0, class_name, "MainMenu", WS_OVERLAPPEDWINDOW & ~(WS_SIZEBOX | WS_MAXIMIZEBOX), 0, 0, m_width, m_height, nullptr, nullptr, m_hInstance, nullptr
+		0, class_name, class_name, WS_OVERLAPPEDWINDOW & ~(WS_SIZEBOX | WS_MAXIMIZEBOX), 0, 0, m_width, m_height, nullptr, nullptr, m_hInstance, nullptr
 	);
 
 	ShowWindow(m_hwnd, nCmdShow);
