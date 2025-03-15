@@ -1,4 +1,5 @@
 #include "platform/WindowsImpl.hpp"
+#include <stdexcept>
 #include <Windows.h>
 
 bool WindowsImpl::is_close_window = false;
@@ -30,13 +31,13 @@ void WindowsImpl::InitWindow() {
 	wcx.hCursor = LoadCursor(NULL,
 		IDC_ARROW);
 	wcx.lpszMenuName = "MainMenu";
-	wcx.lpszClassName = "MainWClass";
+	wcx.lpszClassName = class_name;
 	wcx.hIconSm = LoadIcon(m_hInstance, MAKEINTRESOURCE(IDI_APPLICATION));
 
 	RegisterClassEx(&wcx);
 
 	m_hwnd = CreateWindowExA(
-		0, "MainWClass", "MainMenu", WS_OVERLAPPEDWINDOW, 0, 0, m_width, m_height, nullptr, nullptr, m_hInstance, nullptr
+		0, class_name, "MainMenu", WS_OVERLAPPEDWINDOW & ~(WS_SIZEBOX | WS_MAXIMIZEBOX), 0, 0, m_width, m_height, nullptr, nullptr, m_hInstance, nullptr
 	);
 
 	ShowWindow(m_hwnd, nCmdShow);
@@ -56,6 +57,15 @@ LRESULT WindowsImpl::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		PostQuitMessage(0);
 		return 0;
 
+	case WM_PAINT:
+	{
+		PAINTSTRUCT ps;
+		HDC hdc = BeginPaint(hwnd, &ps);
+
+		FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
+		EndPaint(hwnd, &ps);
+	}
+	return 0;
 	default:
 		return DefWindowProc(hwnd, uMsg, wParam, lParam);
 	}
@@ -65,6 +75,11 @@ LRESULT WindowsImpl::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 void WindowsImpl::Message() {
 	while (PeekMessageA(&msg, m_hwnd, 0, 0, PM_REMOVE))
 	{
+		if (msg.message == WM_KEYDOWN && msg.wParam == 'F')
+		{
+			SetFullscreen();
+		}
+
 		TranslateMessage(&msg);
 		DispatchMessageA(&msg);
 	}
@@ -73,4 +88,45 @@ void WindowsImpl::Message() {
 bool WindowsImpl::IsWindowClosed()
 {
 	return !WindowsImpl::is_close_window;
+}
+
+void WindowsImpl::SetFullscreen()
+{
+	DEVMODEA dm{};
+	dm.dmSize = sizeof(dm);
+
+	if (m_fullscreen)
+	{
+		SetWindowLong(m_hwnd, GWL_STYLE, (WS_OVERLAPPEDWINDOW & ~(WS_SIZEBOX | WS_MAXIMIZEBOX)) | WS_VISIBLE);
+		SetWindowPos(m_hwnd, nullptr, 0, 0, 800, 600, SWP_NOZORDER | SWP_FRAMECHANGED);
+		UpdateWindow(m_hwnd);
+
+		m_fullscreen = false;
+	}
+	else {
+
+		if (!EnumDisplaySettings(nullptr, ENUM_CURRENT_SETTINGS, &dm))
+		{
+			throw std::runtime_error("Could not get display settings");
+			return;
+		}
+
+		m_width = dm.dmPelsWidth;
+		m_height = dm.dmPelsHeight;
+
+		if (ChangeDisplaySettings(&dm, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
+		{
+			throw std::runtime_error("Could not set full screen");
+			return;
+		}
+
+		SetWindowLong(m_hwnd, GWL_STYLE, WS_POPUP);
+
+		SetWindowPos(m_hwnd, HWND_TOP, 0, 0, dm.dmPelsWidth, dm.dmPelsHeight, SWP_FRAMECHANGED | SWP_NOZORDER);
+		ShowWindow(m_hwnd, SW_MAXIMIZE);
+		UpdateWindow(m_hwnd);
+
+		m_fullscreen = true;
+	}
+
 }

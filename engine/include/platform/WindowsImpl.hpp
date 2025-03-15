@@ -10,6 +10,7 @@ public:
 
 	void Message();
 	bool IsWindowClosed();
+	void SetFullscreen();
 
 	static bool is_close_window;
 private:
@@ -18,9 +19,13 @@ private:
 	static LRESULT WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 
+	// TODO: Better var names.
 	HWND m_hwnd;
 	HINSTANCE m_hInstance;
 	int nCmdShow;
 	MSG msg{};
 	int m_width, m_height;
+	bool m_fullscreen = false;
+
+	const LPCSTR class_name = "Hello";
 };
