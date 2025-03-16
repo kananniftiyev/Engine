@@ -1,6 +1,5 @@
 #include "App.hpp"
 
-#include <platform/WindowsImpl.hpp>
 
 
 EngineApp::EngineApp(EngineConfig& config) {

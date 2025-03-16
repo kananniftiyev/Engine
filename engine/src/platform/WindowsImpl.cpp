@@ -1,6 +1,6 @@
 #include "platform/WindowsImpl.hpp"
 
-bool WindowsImpl::is_close_window = false;
+bool WindowsImpl::is_window_closed = false;
 
 WindowsImpl::WindowsImpl(int width, int height, HINSTANCE hInstance, int nCmdShow)
 {
@@ -48,7 +48,7 @@ LRESULT WindowsImpl::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	{
 	case WM_CLOSE:
 		DestroyWindow(hwnd);
-		is_close_window = true;
+		is_window_closed = true;
 		return 0;
 
 	case WM_DESTROY:
@@ -87,7 +87,7 @@ void WindowsImpl::Message() {
 
 bool WindowsImpl::IsWindowClosed()
 {
-	return !WindowsImpl::is_close_window;
+	return !WindowsImpl::is_window_closed;
 }
 
 void WindowsImpl::ToggleFullscreen()
@@ -95,13 +95,13 @@ void WindowsImpl::ToggleFullscreen()
 	DEVMODEA dm{};
 	dm.dmSize = sizeof(dm);
 
-	if (m_fullscreen)
+	if (m_is_fullscreen)
 	{
 		SetWindowLong(m_hwnd, GWL_STYLE, (WS_OVERLAPPEDWINDOW & ~(WS_SIZEBOX | WS_MAXIMIZEBOX)) | WS_VISIBLE);
 		SetWindowPos(m_hwnd, nullptr, 0, 0, 800, 600, SWP_NOZORDER | SWP_FRAMECHANGED);
 		UpdateWindow(m_hwnd);
 
-		m_fullscreen = false;
+		m_is_fullscreen = false;
 	}
 	else {
 
@@ -126,7 +126,7 @@ void WindowsImpl::ToggleFullscreen()
 		ShowWindow(m_hwnd, SW_MAXIMIZE);
 		UpdateWindow(m_hwnd);
 
-		m_fullscreen = true;
+		m_is_fullscreen = true;
 	}
 
 }
