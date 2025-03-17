@@ -10,4 +10,15 @@ if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET engine PROPERTY CXX_STANDARD 20)
 endif()
 
-# TODO: Add tests and install targets if needed.
+include(FetchContent)
+
+FetchContent_Declare(
+  mINI
+  GIT_REPOSITORY https://github.com/metayeti/mINI.git
+  GIT_TAG        master
+)
+
+FetchContent_MakeAvailable(mINI)
+
+target_include_directories(engine PUBLIC ${mINI_SOURCE_DIR}/src)
+message(STATUS ${mINI_SOURCE_DIR})

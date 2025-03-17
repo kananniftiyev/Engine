@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <stdexcept>
 #include <windows.h>
 
@@ -39,6 +40,7 @@ public:
 	void ToggleCursor();
 
 	HWND GetHwnd() { return m_hwnd; }
+	MSG& GetMsg() { return msg; }
 
 	static bool is_window_closed;
 private:
@@ -57,4 +59,5 @@ private:
 	bool m_is_fullscreen = false;
 
 	const LPCSTR class_name = "Hello";
+
 };

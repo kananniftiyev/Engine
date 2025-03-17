@@ -2,6 +2,7 @@
 
 #include "platform/WindowsImpl.hpp"
 #include "render/D3D11Renderer.hpp"
+#include "render/IRenderer.hpp"
 #include <cstdint>
 #include <memory>
 #include <stdexcept>
@@ -35,8 +36,8 @@ private:
 	bool is_running;
 
 	std::unique_ptr<WindowsImpl> window;
-	std::unique_ptr<D3D11Renderer> renderer;
-
+	std::unique_ptr<IRenderer> renderer;
+	// std::unique_ptr<EngineInputManager> input_manager;
 
 
 

@@ -4,10 +4,14 @@ bool WindowsImpl::is_window_closed = false;
 
 WindowsImpl::WindowsImpl(int width, int height, HINSTANCE hInstance, int nCmdShow)
 {
+	AllocConsole();
+	freopen("CONOUT$", "w", stdout);
+
 	m_width = width;
 	m_height = height;
 	m_hInstance = hInstance;
 	this->nCmdShow = nCmdShow;
+
 	InitWindow();
 }
 
@@ -73,13 +77,6 @@ LRESULT WindowsImpl::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 void WindowsImpl::Message() {
 	while (PeekMessageA(&msg, m_hwnd, 0, 0, PM_REMOVE))
 	{
-		// TODO: Better input managing
-		if (msg.message == WM_KEYDOWN && msg.wParam == 'F')
-		{
-			ToggleFullscreen();
-			ToggleCursor();
-		}
-
 		TranslateMessage(&msg);
 		DispatchMessageA(&msg);
 	}

@@ -2,11 +2,14 @@
 
 D3D11Renderer::D3D11Renderer(uint32_t width, uint32_t height, bool vsync, HWND hwnd)
 {
-	InitDevice();
-	InitSwapchain(width, height, hwnd);
-	InitBackBuffer();
-	InitDepth(width, height);
-	InitViewport(width, height);
+	m_width = width;
+	m_height = height;
+	m_hwnd = hwnd;
+	Initialize();
+}
+
+D3D11Renderer::~D3D11Renderer()
+{
 }
 
 void D3D11Renderer::Frame()
@@ -37,11 +40,11 @@ void D3D11Renderer::InitDevice()
 
 }
 
-void D3D11Renderer::InitSwapchain(uint32_t width, uint32_t height, HWND hwnd)
+void D3D11Renderer::InitSwapchain()
 {
 	DXGI_SWAP_CHAIN_DESC desc{};
-	desc.BufferDesc.Width = width;
-	desc.BufferDesc.Height = height;
+	desc.BufferDesc.Width = m_width;
+	desc.BufferDesc.Height = m_height;
 	desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	desc.BufferCount = 2;
 	desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
@@ -51,11 +54,10 @@ void D3D11Renderer::InitSwapchain(uint32_t width, uint32_t height, HWND hwnd)
 	desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
-	desc.OutputWindow = hwnd;
+	desc.OutputWindow = m_hwnd;
 	desc.Windowed = TRUE;
 	desc.SwapEffect = DXGI_SWAP_EFFECT_SEQUENTIAL;
 	desc.Flags = 0;
-
 
 	auto hr = CreateDXGIFactory(__uuidof(IDXGIFactory), reinterpret_cast<void**>(m_factory.GetAddressOf()));
 
@@ -82,11 +84,11 @@ void D3D11Renderer::InitBackBuffer()
 
 }
 
-void D3D11Renderer::InitDepth(uint32_t width, uint32_t height)
+void D3D11Renderer::InitDepth()
 {
 	D3D11_TEXTURE2D_DESC desc{};
-	desc.Width = width;
-	desc.Height = height;
+	desc.Width = m_width;
+	desc.Height = m_height;
 	desc.MipLevels = 1;
 	desc.ArraySize = 1;
 	desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -111,15 +113,31 @@ void D3D11Renderer::InitDepth(uint32_t width, uint32_t height)
 
 }
 
-void D3D11Renderer::InitViewport(uint32_t width, uint32_t height)
+void D3D11Renderer::InitViewport()
 {
 	D3D11_VIEWPORT vp{};
 	vp.TopLeftX = 0.0f;
 	vp.TopLeftY = 0.0f;
-	vp.Width = static_cast<float>(width);
-	vp.Height = static_cast<float>(height);
+	vp.Width = static_cast<float>(m_width);
+	vp.Height = static_cast<float>(m_height);
 	vp.MaxDepth = 1.0f;
 	vp.MinDepth = 0.0f;
 
 	m_device_context->RSSetViewports(1, &vp);
+}
+
+void D3D11Renderer::Initialize() {
+	InitDevice();
+	InitSwapchain();
+	InitBackBuffer();
+	InitDepth();
+	InitViewport();
+}
+
+void D3D11Renderer::CreateBuffer()
+{
+}
+
+void D3D11Renderer::CreateShader()
+{
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "IRenderer.hpp"
 #include <cstdint>
 #include <d3d11.h>
 #include <d3dcommon.h>
@@ -16,12 +17,13 @@
 
 using namespace Microsoft::WRL;
 
-class D3D11Renderer
+class D3D11Renderer : public IRenderer
 {
 public:
 	D3D11Renderer(uint32_t width, uint32_t height, bool vsync, HWND hwnd);
+	~D3D11Renderer() override;
 
-	void Frame();
+	void Frame() override;
 
 private:
 	ComPtr<ID3D11Device> m_device;
@@ -33,10 +35,15 @@ private:
 	ComPtr<ID3D11DepthStencilView> m_depth_stencil_view;
 
 	void InitDevice();
-	void InitSwapchain(uint32_t width, uint32_t height, HWND hwnd);
+	void InitSwapchain();
 	void InitBackBuffer();
-	void InitDepth(uint32_t width, uint32_t height);
-	void InitViewport(uint32_t width, uint32_t height);
+	void InitDepth();
+	void InitViewport();
 
+	void Initialize() override;
+	void CreateBuffer() override;
+	void CreateShader() override;
 
+	HWND m_hwnd;
+	uint32_t m_width, m_height;
 };
