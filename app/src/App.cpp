@@ -30,6 +30,8 @@ int EngineApp::Run(EngineConfig& config) {
 
 
 void EngineApp::MainLoop() {
+	renderer->Start();
+
 	while (is_running)
 	{
 		window->Message();

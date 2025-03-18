@@ -5,11 +5,58 @@ D3D11Renderer::D3D11Renderer(uint32_t width, uint32_t height, bool vsync, HWND h
 	m_width = width;
 	m_height = height;
 	m_hwnd = hwnd;
-	Initialize();
+	InitDevice();
+	InitSwapchain();
+	InitBackBuffer();
+	InitDepth();
+	InitViewport();
 }
 
 D3D11Renderer::~D3D11Renderer()
 {
+}
+
+void D3D11Renderer::Start()
+{
+	std::vector<Vertex> vertices =
+	{
+		{ XMFLOAT3(-1.0f, 1.0f, -1.0f) },
+		{ XMFLOAT3(1.0f, 1.0f, -1.0f) },
+		{ XMFLOAT3(1.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f, -1.0f) },
+		{ XMFLOAT3(1.0f, -1.0f, -1.0f) },
+		{ XMFLOAT3(1.0f, -1.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f, 1.0f) },
+	};
+
+	std::vector<WORD> indices =
+	{
+		3, 1, 0,
+		2, 1, 3,
+
+		0, 5, 4,
+		1, 5, 0,
+
+		3, 4, 7,
+		0, 4, 3,
+
+		1, 6, 5,
+		2, 6, 1,
+
+		2, 7, 6,
+		3, 7, 2,
+
+		6, 4, 5,
+		7, 4, 6,
+	};
+
+	LoadShader(L"assets/shaders/cube/cube_vertex.hlsl", true, "vert");
+	LoadShader(L"assets/shaders/cube/cube_pixel.hlsl", false, "pix");
+
+	CreateBuffer(vertices, "vert_b");
+	CreateIndexBuffer(indices, "indices_b");
+	CreateConstantBuffer("c_b");
 }
 
 void D3D11Renderer::Frame()
@@ -18,6 +65,51 @@ void D3D11Renderer::Frame()
 
 	m_device_context->ClearRenderTargetView(m_rtv.Get(), clearColor);
 	m_device_context->ClearDepthStencilView(m_depth_stencil_view.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	m_device_context->VSSetShader(resource_manager.GetVertexShaders("vert"), nullptr, 0);
+	m_device_context->PSSetShader(resource_manager.GetPixelShaders("pix"), nullptr, 0);
+
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+	ID3D11Buffer* vertexBuffer = resource_manager.GetBuffer("vert_b");
+	auto c_buffer = resource_manager.GetBuffer("c_b");
+
+	CBuffer cb;
+
+	static float angle = 0.0f;
+	auto model = XMMatrixRotationY(angle);
+	angle += 0.01f;
+
+	XMVECTOR Eye = XMVectorSet(0.0f, 0.0f, -3.0f, 0.0f);
+	XMVECTOR At = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+	XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	auto view = XMMatrixLookAtLH(Eye, At, Up);
+
+	auto projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, 800 / (FLOAT)600, 0.01f, 100.0f);
+
+	cb.projection = projection;
+	cb.view = view;
+	cb.world = model;
+	UpdateCosntantBuffer("c_b", cb);
+
+
+	m_device_context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+	m_device_context->IASetIndexBuffer(resource_manager.GetBuffer("indices_b"), DXGI_FORMAT_R16_UINT, 0);
+	m_device_context->VSSetConstantBuffers(0, 1, &c_buffer);
+
+	D3D11_INPUT_ELEMENT_DESC vertex_desc[] = {
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	};
+
+	ComPtr<ID3D11InputLayout> input_layout;
+	auto hr = m_device->CreateInputLayout(vertex_desc, ARRAYSIZE(vertex_desc), vblob->GetBufferPointer(), vblob->GetBufferSize(), &input_layout);
+
+	HR_CHECK(hr, "Could not create input layout");
+	m_device_context->IASetInputLayout(input_layout.Get());
+
+	m_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	m_device_context->DrawIndexed(36, 0, 0);
 
 	m_swapchain->Present(1, 0);
 }
@@ -126,18 +218,123 @@ void D3D11Renderer::InitViewport()
 	m_device_context->RSSetViewports(1, &vp);
 }
 
-void D3D11Renderer::Initialize() {
-	InitDevice();
-	InitSwapchain();
-	InitBackBuffer();
-	InitDepth();
-	InitViewport();
+void D3D11Renderer::CreateBuffer(std::vector<Vertex>& data, std::string name)
+{
+	D3D11_BUFFER_DESC bdesc{};
+	bdesc.ByteWidth = sizeof(Vertex) * data.size();
+	bdesc.Usage = D3D11_USAGE_IMMUTABLE;
+	bdesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bdesc.CPUAccessFlags = 0;
+	bdesc.MiscFlags = 0;
+	bdesc.StructureByteStride = 0;
+
+	D3D11_SUBRESOURCE_DATA sdesc{};
+	sdesc.pSysMem = data.data();
+
+	ID3D11Buffer* buffer = nullptr;
+
+	auto hr = m_device->CreateBuffer(&bdesc, &sdesc, &buffer);
+
+	HR_CHECK(hr, "Could not create buffer");
+
+	resource_manager.AddBuffer(name, buffer);
 }
 
-void D3D11Renderer::CreateBuffer()
+void D3D11Renderer::CreateIndexBuffer(std::vector<WORD>& data, std::string name)
 {
+	D3D11_BUFFER_DESC bdesc{};
+	bdesc.ByteWidth = sizeof(Vertex) * data.size();
+	bdesc.Usage = D3D11_USAGE_IMMUTABLE;
+	bdesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	bdesc.CPUAccessFlags = 0;
+	bdesc.MiscFlags = 0;
+	bdesc.StructureByteStride = 0;
+
+	D3D11_SUBRESOURCE_DATA sdesc{};
+	sdesc.pSysMem = data.data();
+
+	ID3D11Buffer* buffer = nullptr;
+
+	auto hr = m_device->CreateBuffer(&bdesc, &sdesc, &buffer);
+
+	HR_CHECK(hr, "Could not create buffer");
+
+	resource_manager.AddBuffer(name, buffer);
 }
 
-void D3D11Renderer::CreateShader()
+void D3D11Renderer::CreateConstantBuffer(std::string name)
 {
+	D3D11_BUFFER_DESC bdesc{};
+	bdesc.ByteWidth = sizeof(CBuffer);
+	bdesc.Usage = D3D11_USAGE_DYNAMIC;
+	bdesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bdesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	bdesc.MiscFlags = 0;
+	bdesc.StructureByteStride = 0;
+
+	ID3D11Buffer* buffer = nullptr;
+
+	auto hr = m_device->CreateBuffer(&bdesc, nullptr, &buffer);
+
+	HR_CHECK(hr, "Could not create buffer");
+
+	resource_manager.AddBuffer(name, buffer);
 }
+
+void D3D11Renderer::UpdateCosntantBuffer(std::string name, CBuffer& buffer)
+{
+	auto c_buffer = resource_manager.GetBuffer(name);
+
+	D3D11_MAPPED_SUBRESOURCE mapped_resource;
+	auto hr = m_device_context->Map(c_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource);
+	if (SUCCEEDED(hr))
+	{
+
+		memcpy(mapped_resource.pData, &buffer, sizeof(CBuffer));
+		m_device_context->Unmap(c_buffer, 0);
+	}
+
+}
+
+void D3D11Renderer::LoadShader(LPCWSTR file_path, bool vertex, std::string name)
+{
+	ID3DBlob* blob;
+	ID3DBlob* eblob;
+	auto hr = D3DCompileFromFile(file_path, nullptr, nullptr, "main", (vertex) ? "vs_5_0" : "ps_5_0", D3DCOMPILE_DEBUG, 0, &blob, &eblob);
+
+
+	if (FAILED(hr)) {
+		if (eblob) {
+			OutputDebugStringA((char*)eblob->GetBufferPointer());
+
+			printf("Shader Compilation Failed: %s\n", (char*)eblob->GetBufferPointer());
+
+			eblob->Release();
+		}
+
+	}
+
+	HR_CHECK(hr, "asd");
+
+
+	if (vertex)
+	{
+		ID3D11VertexShader* vertex_shader;
+		hr = m_device->CreateVertexShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &vertex_shader);
+
+		HR_CHECK(hr, "Could not create vertex shader");
+
+		resource_manager.AddVertexShader(name, vertex_shader);
+
+		vblob = blob;
+	}
+	else {
+		ID3D11PixelShader* pixel_shader;
+		hr = m_device->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &pixel_shader);
+
+		HR_CHECK(hr, "Could not create pixel shader");
+
+		resource_manager.AddPixelShader(name, pixel_shader);
+	}
+}
+
