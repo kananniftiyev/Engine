@@ -10,6 +10,7 @@ D3D11Renderer::D3D11Renderer(uint32_t width, uint32_t height, bool vsync, HWND h
 	InitBackBuffer();
 	InitDepth();
 	InitViewport();
+	// TODO: Depth Stencil state
 }
 
 D3D11Renderer::~D3D11Renderer()
@@ -61,6 +62,8 @@ void D3D11Renderer::Start()
 
 void D3D11Renderer::Frame()
 {
+	/*auto res = Time::FrameTime();
+	std::cout << "Graphics Render Time: " << res << "\n";*/
 	static FLOAT clearColor[4] = { 0.3f, 0.5f, 0.7f, 1.0f };
 
 	m_device_context->ClearRenderTargetView(m_rtv.Get(), clearColor);
@@ -78,7 +81,7 @@ void D3D11Renderer::Frame()
 
 	static float angle = 0.0f;
 	auto model = XMMatrixRotationY(angle);
-	angle += 0.01f;
+	angle += 0.0001f;
 
 	XMVECTOR Eye = XMVectorSet(0.0f, 0.0f, -3.0f, 0.0f);
 	XMVECTOR At = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
@@ -111,7 +114,7 @@ void D3D11Renderer::Frame()
 
 	m_device_context->DrawIndexed(36, 0, 0);
 
-	m_swapchain->Present(1, 0);
+	m_swapchain->Present(0, 0);
 }
 
 void D3D11Renderer::InitDevice()

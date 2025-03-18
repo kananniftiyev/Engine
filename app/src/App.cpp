@@ -34,6 +34,7 @@ void EngineApp::MainLoop() {
 
 	while (is_running)
 	{
+		Time::FrameRate();
 		window->Message();
 		renderer->Frame();
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ResourceManager.hpp"
+#include "utils/Time.hpp"
 #include <cstdint>
 #include <d3d11.h>
 #include <d3dcommon.h>

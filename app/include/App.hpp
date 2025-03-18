@@ -2,6 +2,7 @@
 
 #include "platform/WindowsImpl.hpp"
 #include "render/D3D11Renderer.hpp"
+#include "utils/Time.hpp"
 #include <cstdint>
 #include <memory>
 #include <stdexcept>
