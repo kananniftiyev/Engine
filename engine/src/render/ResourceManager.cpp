@@ -13,9 +13,13 @@ ResourceManager::~ResourceManager()
 	for (auto [name, pixel] : m_pixel_shaders) {
 		pixel->Release();
 	}
+
+	for (auto [name, input] : m_pixel_shaders) {
+		input->Release();
+	}
 }
 
-ID3D11VertexShader* ResourceManager::GetVertexShaders(std::string shader_name)
+ID3D11VertexShader* ResourceManager::GetVertexShaders(const std::string& shader_name)
 {
 	auto vertex_it = m_vertex_shaders.find(shader_name);
 
@@ -28,7 +32,7 @@ ID3D11VertexShader* ResourceManager::GetVertexShaders(std::string shader_name)
 
 }
 
-ID3D11PixelShader* ResourceManager::GetPixelShaders(std::string shader_name)
+ID3D11PixelShader* ResourceManager::GetPixelShaders(const std::string& shader_name)
 {
 	auto vertex_it = m_pixel_shaders.find(shader_name);
 
@@ -40,7 +44,7 @@ ID3D11PixelShader* ResourceManager::GetPixelShaders(std::string shader_name)
 	return nullptr;
 }
 
-ID3D11Buffer* ResourceManager::GetBuffer(std::string buffer_name)
+ID3D11Buffer* ResourceManager::GetBuffer(const std::string& buffer_name)
 {
 	auto buffer_it = m_buffers.find(buffer_name);
 
@@ -52,17 +56,34 @@ ID3D11Buffer* ResourceManager::GetBuffer(std::string buffer_name)
 	return nullptr;
 }
 
-void ResourceManager::AddVertexShader(std::string name, ID3D11VertexShader* shader)
+ID3D11InputLayout* ResourceManager::GetInputLayout(const std::string& name)
+{
+	auto layout_it = m_input_layouts.find(name);
+
+	if (layout_it != m_input_layouts.end())
+	{
+		return layout_it->second;
+	}
+
+	return nullptr;
+}
+
+void ResourceManager::AddVertexShader(const std::string& name, ID3D11VertexShader* shader)
 {
 	m_vertex_shaders[name] = shader;
 }
 
-void ResourceManager::AddPixelShader(std::string name, ID3D11PixelShader* shader)
+void ResourceManager::AddPixelShader(const std::string& name, ID3D11PixelShader* shader)
 {
 	m_pixel_shaders[name] = shader;
 }
 
-void ResourceManager::AddBuffer(std::string name, ID3D11Buffer* buffer)
+void ResourceManager::AddBuffer(const std::string& name, ID3D11Buffer* buffer)
 {
 	m_buffers[name] = buffer;
+}
+
+void ResourceManager::AddInputLayout(ID3D11InputLayout* input, const std::string& name)
+{
+	m_input_layouts[name] = input;
 }

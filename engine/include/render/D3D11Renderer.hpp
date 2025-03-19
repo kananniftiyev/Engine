@@ -2,6 +2,7 @@
 
 #include "ResourceManager.hpp"
 #include "utils/Time.hpp"
+#include <array>
 #include <cstdint>
 #include <d3d11.h>
 #include <d3dcommon.h>
@@ -14,7 +15,6 @@
 #include <stdexcept>
 #include <Windows.h>
 #include <wrl/client.h>
-
 
 #define HR_CHECK(hr, msg)                                   \
     if (FAILED(hr)) {                                       \
@@ -61,11 +61,14 @@ private:
 
 	// Resrouces
 	ResourceManager resource_manager;
-	void CreateBuffer(std::vector<Vertex>& data, std::string name);
-	void CreateIndexBuffer(std::vector<WORD>& data, std::string name);
-	void CreateConstantBuffer(std::string name);
-	void UpdateCosntantBuffer(std::string name, CBuffer& buffer);
-	void LoadShader(LPCWSTR file_path, bool vertex, std::string name);
+	void CreateBuffer(std::vector<Vertex>& data, const std::string& name);
+	void CreateIndexBuffer(std::vector<WORD>& data, const std::string& name);
+	void CreateConstantBuffer(const std::string& name);
+	void UpdateCosntantBuffer(const std::string& name, CBuffer& buffer);
+	void LoadShader(LPCWSTR file_path, bool vertex, const std::string& name);
+
+	template<int T>
+	void CreateInputLayout(std::array<D3D11_INPUT_ELEMENT_DESC, T> vertex_desc, const std::string& name);
 
 	// Temp
 	ID3DBlob* vblob;
@@ -75,3 +78,4 @@ private:
 
 	// TODO: Queue of objects to be rendered.
 };
+

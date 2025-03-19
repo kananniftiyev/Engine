@@ -18,20 +18,23 @@ class ResourceManager
 public:
 	~ResourceManager();
 
-	ID3D11VertexShader* GetVertexShaders(std::string shader_name);
-	ID3D11PixelShader* GetPixelShaders(std::string shader_name);
-	ID3D11Buffer* GetBuffer(std::string buffer_name);
+	ID3D11VertexShader* GetVertexShaders(const std::string& shader_name);
+	ID3D11PixelShader* GetPixelShaders(const std::string& shader_name);
+	ID3D11Buffer* GetBuffer(const std::string& buffer_name);
+	ID3D11InputLayout* GetInputLayout(const std::string& name);
 
-	void AddVertexShader(std::string name, ID3D11VertexShader* shader);
-	void AddPixelShader(std::string name, ID3D11PixelShader* shader);
+	void AddVertexShader(const std::string& name, ID3D11VertexShader* shader);
+	void AddPixelShader(const std::string& name, ID3D11PixelShader* shader);
 
-	void AddBuffer(std::string name, ID3D11Buffer* buffer);
+	void AddBuffer(const std::string& name, ID3D11Buffer* buffer);
+	void AddInputLayout(ID3D11InputLayout* input, const std::string& name);
 
 
 private:
 	std::unordered_map<std::string, ID3D11VertexShader*> m_vertex_shaders;
 	std::unordered_map<std::string, ID3D11PixelShader*> m_pixel_shaders;
 	std::unordered_map<std::string, ID3D11Buffer*> m_buffers;
+	std::unordered_map<std::string, ID3D11InputLayout*> m_input_layouts;
 
 	// TODO: Lookup shader file path ref.
 };

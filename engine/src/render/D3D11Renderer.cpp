@@ -58,6 +58,12 @@ void D3D11Renderer::Start()
 	CreateBuffer(vertices, "vert_b");
 	CreateIndexBuffer(indices, "indices_b");
 	CreateConstantBuffer("c_b");
+
+	std::array<D3D11_INPUT_ELEMENT_DESC, 1> vertex_desc = {
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	};
+
+	CreateInputLayout<1>(vertex_desc, "object");
 }
 
 void D3D11Renderer::Frame()
@@ -88,7 +94,8 @@ void D3D11Renderer::Frame()
 	XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 	auto view = XMMatrixLookAtLH(Eye, At, Up);
 
-	auto projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, 800 / (FLOAT)600, 0.01f, 100.0f);
+	static float ratio = static_cast<float>(m_width) / static_cast<float>(m_height);
+	auto projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, ratio, 1.0f, 100.0f);
 
 	cb.projection = projection;
 	cb.view = view;
@@ -100,15 +107,8 @@ void D3D11Renderer::Frame()
 	m_device_context->IASetIndexBuffer(resource_manager.GetBuffer("indices_b"), DXGI_FORMAT_R16_UINT, 0);
 	m_device_context->VSSetConstantBuffers(0, 1, &c_buffer);
 
-	D3D11_INPUT_ELEMENT_DESC vertex_desc[] = {
-		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-	};
 
-	ComPtr<ID3D11InputLayout> input_layout;
-	auto hr = m_device->CreateInputLayout(vertex_desc, ARRAYSIZE(vertex_desc), vblob->GetBufferPointer(), vblob->GetBufferSize(), &input_layout);
-
-	HR_CHECK(hr, "Could not create input layout");
-	m_device_context->IASetInputLayout(input_layout.Get());
+	m_device_context->IASetInputLayout(resource_manager.GetInputLayout("object"));
 
 	m_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -200,6 +200,12 @@ void D3D11Renderer::InitDepth()
 
 	HR_CHECK(hr, "Could not create depth texture.");
 
+	//D3D11_DEPTH_STENCIL_DESC dsd{};
+	//dsd.DepthEnable = true;
+	//dsd.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	//dsd.StencilEnable = true;
+	//dsd.
+
 	hr = m_device->CreateDepthStencilView(texture.Get(), nullptr, m_depth_stencil_view.GetAddressOf());
 
 	HR_CHECK(hr, "Could not create depth view.");
@@ -221,7 +227,8 @@ void D3D11Renderer::InitViewport()
 	m_device_context->RSSetViewports(1, &vp);
 }
 
-void D3D11Renderer::CreateBuffer(std::vector<Vertex>& data, std::string name)
+
+void D3D11Renderer::CreateBuffer(std::vector<Vertex>& data, const std::string& name)
 {
 	D3D11_BUFFER_DESC bdesc{};
 	bdesc.ByteWidth = sizeof(Vertex) * data.size();
@@ -243,7 +250,7 @@ void D3D11Renderer::CreateBuffer(std::vector<Vertex>& data, std::string name)
 	resource_manager.AddBuffer(name, buffer);
 }
 
-void D3D11Renderer::CreateIndexBuffer(std::vector<WORD>& data, std::string name)
+void D3D11Renderer::CreateIndexBuffer(std::vector<WORD>& data, const std::string& name)
 {
 	D3D11_BUFFER_DESC bdesc{};
 	bdesc.ByteWidth = sizeof(Vertex) * data.size();
@@ -265,7 +272,7 @@ void D3D11Renderer::CreateIndexBuffer(std::vector<WORD>& data, std::string name)
 	resource_manager.AddBuffer(name, buffer);
 }
 
-void D3D11Renderer::CreateConstantBuffer(std::string name)
+void D3D11Renderer::CreateConstantBuffer(const std::string& name)
 {
 	D3D11_BUFFER_DESC bdesc{};
 	bdesc.ByteWidth = sizeof(CBuffer);
@@ -284,7 +291,7 @@ void D3D11Renderer::CreateConstantBuffer(std::string name)
 	resource_manager.AddBuffer(name, buffer);
 }
 
-void D3D11Renderer::UpdateCosntantBuffer(std::string name, CBuffer& buffer)
+void D3D11Renderer::UpdateCosntantBuffer(const std::string& name, CBuffer& buffer)
 {
 	auto c_buffer = resource_manager.GetBuffer(name);
 
@@ -299,7 +306,7 @@ void D3D11Renderer::UpdateCosntantBuffer(std::string name, CBuffer& buffer)
 
 }
 
-void D3D11Renderer::LoadShader(LPCWSTR file_path, bool vertex, std::string name)
+void D3D11Renderer::LoadShader(LPCWSTR file_path, bool vertex, const std::string& name)
 {
 	ID3DBlob* blob;
 	ID3DBlob* eblob;
@@ -341,3 +348,12 @@ void D3D11Renderer::LoadShader(LPCWSTR file_path, bool vertex, std::string name)
 	}
 }
 
+template<int T>
+void D3D11Renderer::CreateInputLayout(std::array<D3D11_INPUT_ELEMENT_DESC, T> vertex_desc, const std::string& name)
+{
+	ID3D11InputLayout* input_layout;
+	auto hr = m_device->CreateInputLayout(vertex_desc.data(), T, vblob->GetBufferPointer(), vblob->GetBufferSize(), &input_layout);
+
+	HR_CHECK(hr, "Could not create input layout");
+	resource_manager.AddInputLayout(input_layout, name);
+}
