@@ -61,8 +61,9 @@ private:
 
 	// Resrouces
 	ResourceManager resource_manager;
-	void CreateBuffer(std::vector<Vertex>& data, const std::string& name);
-	void CreateIndexBuffer(std::vector<WORD>& data, const std::string& name);
+
+	template<typename T>
+	void CreateBuffer(std::vector<T>& data, const std::string& name, D3D11_USAGE usage, UINT bindflag, UINT cpu_access);
 	void CreateConstantBuffer(const std::string& name);
 	void UpdateCosntantBuffer(const std::string& name, CBuffer& buffer);
 	void LoadShader(LPCWSTR file_path, bool vertex, const std::string& name);

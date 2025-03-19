@@ -55,8 +55,8 @@ void D3D11Renderer::Start()
 	LoadShader(L"assets/shaders/cube/cube_vertex.hlsl", true, "vert");
 	LoadShader(L"assets/shaders/cube/cube_pixel.hlsl", false, "pix");
 
-	CreateBuffer(vertices, "vert_b");
-	CreateIndexBuffer(indices, "indices_b");
+	CreateBuffer<Vertex>(vertices, "vert_b", D3D11_USAGE_IMMUTABLE, D3D11_BIND_VERTEX_BUFFER, 0);
+	CreateBuffer<WORD>(indices, "indices_b", D3D11_USAGE_IMMUTABLE, D3D11_BIND_INDEX_BUFFER, 0);
 	CreateConstantBuffer("c_b");
 
 	std::array<D3D11_INPUT_ELEMENT_DESC, 1> vertex_desc = {
@@ -227,36 +227,14 @@ void D3D11Renderer::InitViewport()
 	m_device_context->RSSetViewports(1, &vp);
 }
 
-
-void D3D11Renderer::CreateBuffer(std::vector<Vertex>& data, const std::string& name)
+template<typename T>
+void D3D11Renderer::CreateBuffer(std::vector<T>& data, const std::string& name, D3D11_USAGE usage, UINT bindflag, UINT cpu_access)
 {
 	D3D11_BUFFER_DESC bdesc{};
-	bdesc.ByteWidth = sizeof(Vertex) * data.size();
-	bdesc.Usage = D3D11_USAGE_IMMUTABLE;
-	bdesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bdesc.CPUAccessFlags = 0;
-	bdesc.MiscFlags = 0;
-	bdesc.StructureByteStride = 0;
-
-	D3D11_SUBRESOURCE_DATA sdesc{};
-	sdesc.pSysMem = data.data();
-
-	ID3D11Buffer* buffer = nullptr;
-
-	auto hr = m_device->CreateBuffer(&bdesc, &sdesc, &buffer);
-
-	HR_CHECK(hr, "Could not create buffer");
-
-	resource_manager.AddBuffer(name, buffer);
-}
-
-void D3D11Renderer::CreateIndexBuffer(std::vector<WORD>& data, const std::string& name)
-{
-	D3D11_BUFFER_DESC bdesc{};
-	bdesc.ByteWidth = sizeof(Vertex) * data.size();
-	bdesc.Usage = D3D11_USAGE_IMMUTABLE;
-	bdesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	bdesc.CPUAccessFlags = 0;
+	bdesc.ByteWidth = sizeof(T) * data.size();
+	bdesc.Usage = usage;
+	bdesc.BindFlags = bindflag;
+	bdesc.CPUAccessFlags = cpu_access;
 	bdesc.MiscFlags = 0;
 	bdesc.StructureByteStride = 0;
 
