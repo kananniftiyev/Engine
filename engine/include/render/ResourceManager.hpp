@@ -5,36 +5,40 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <wrl.h>
 
+using namespace Microsoft::WRL;
 
-struct ShaderData
-{
-	ID3D11VertexShader* vertex_shader;
-	ID3D11PixelShader* pixel_shader;
-};
-
+template<typename T>
 class ResourceManager
 {
 public:
-	~ResourceManager();
 
-	ID3D11VertexShader* GetVertexShaders(const std::string& shader_name);
-	ID3D11PixelShader* GetPixelShaders(const std::string& shader_name);
-	ID3D11Buffer* GetBuffer(const std::string& buffer_name);
-	ID3D11InputLayout* GetInputLayout(const std::string& name);
+	ComPtr<T> Get(const std::string& name) {
+		auto object = m_cache.find(name);
 
-	void AddVertexShader(const std::string& name, ID3D11VertexShader* shader);
-	void AddPixelShader(const std::string& name, ID3D11PixelShader* shader);
+		if (object != m_cache.end())
+		{
+			return object->second;
+		}
 
-	void AddBuffer(const std::string& name, ID3D11Buffer* buffer);
-	void AddInputLayout(ID3D11InputLayout* input, const std::string& name);
+		return nullptr;
+	}
+
+	bool Load(const std::string& name, ComPtr<T> object) {
+
+		m_cache[name] = object;
+
+		return true;
+	}
+
+	bool Unload(const std::string& name) {
+		m_cache.erase(name);
+
+		return true;
+	}
 
 
 private:
-	std::unordered_map<std::string, ID3D11VertexShader*> m_vertex_shaders;
-	std::unordered_map<std::string, ID3D11PixelShader*> m_pixel_shaders;
-	std::unordered_map<std::string, ID3D11Buffer*> m_buffers;
-	std::unordered_map<std::string, ID3D11InputLayout*> m_input_layouts;
-
-	// TODO: Lookup shader file path ref.
+	std::unordered_map<std::string, ComPtr<T>> m_cache;
 };

@@ -60,7 +60,10 @@ private:
 	void InitViewport();
 
 	// Resrouces
-	ResourceManager resource_manager;
+	ResourceManager<ID3D11Buffer> buffer_manager;
+	ResourceManager<ID3D11VertexShader> vertex_shader_manager;
+	ResourceManager<ID3D11PixelShader> pixel_shader_manager;
+	ResourceManager<ID3D11InputLayout> input_layout_manager;
 
 	template<typename T>
 	void CreateBuffer(std::vector<T>& data, const std::string& name, D3D11_USAGE usage, UINT bindflag, UINT cpu_access);
@@ -72,7 +75,7 @@ private:
 	void CreateInputLayout(std::array<D3D11_INPUT_ELEMENT_DESC, T> vertex_desc, const std::string& name);
 
 	// Temp
-	ID3DBlob* vblob;
+	ComPtr<ID3DBlob> vblob;
 
 	HWND m_hwnd;
 	uint32_t m_width, m_height;

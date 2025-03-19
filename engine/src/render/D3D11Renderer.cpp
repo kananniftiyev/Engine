@@ -75,13 +75,13 @@ void D3D11Renderer::Frame()
 	m_device_context->ClearRenderTargetView(m_rtv.Get(), clearColor);
 	m_device_context->ClearDepthStencilView(m_depth_stencil_view.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	m_device_context->VSSetShader(resource_manager.GetVertexShaders("vert"), nullptr, 0);
-	m_device_context->PSSetShader(resource_manager.GetPixelShaders("pix"), nullptr, 0);
+	m_device_context->VSSetShader(vertex_shader_manager.Get("vert").Get(), nullptr, 0);
+	m_device_context->PSSetShader(pixel_shader_manager.Get("pix").Get(), nullptr, 0);
 
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
-	ID3D11Buffer* vertexBuffer = resource_manager.GetBuffer("vert_b");
-	auto c_buffer = resource_manager.GetBuffer("c_b");
+	ID3D11Buffer* vertexBuffer = buffer_manager.Get("vert_b").Get();
+	auto c_buffer = buffer_manager.Get("c_b").Get();
 
 	CBuffer cb;
 
@@ -104,11 +104,11 @@ void D3D11Renderer::Frame()
 
 
 	m_device_context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-	m_device_context->IASetIndexBuffer(resource_manager.GetBuffer("indices_b"), DXGI_FORMAT_R16_UINT, 0);
+	m_device_context->IASetIndexBuffer(buffer_manager.Get("indices_b").Get(), DXGI_FORMAT_R16_UINT, 0);
 	m_device_context->VSSetConstantBuffers(0, 1, &c_buffer);
 
 
-	m_device_context->IASetInputLayout(resource_manager.GetInputLayout("object"));
+	m_device_context->IASetInputLayout(input_layout_manager.Get("object").Get());
 
 	m_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -241,13 +241,13 @@ void D3D11Renderer::CreateBuffer(std::vector<T>& data, const std::string& name, 
 	D3D11_SUBRESOURCE_DATA sdesc{};
 	sdesc.pSysMem = data.data();
 
-	ID3D11Buffer* buffer = nullptr;
+	ComPtr<ID3D11Buffer> buffer = nullptr;
 
-	auto hr = m_device->CreateBuffer(&bdesc, &sdesc, &buffer);
+	auto hr = m_device->CreateBuffer(&bdesc, &sdesc, buffer.GetAddressOf());
 
 	HR_CHECK(hr, "Could not create buffer");
 
-	resource_manager.AddBuffer(name, buffer);
+	buffer_manager.Load(name, buffer);
 }
 
 void D3D11Renderer::CreateConstantBuffer(const std::string& name)
@@ -260,18 +260,18 @@ void D3D11Renderer::CreateConstantBuffer(const std::string& name)
 	bdesc.MiscFlags = 0;
 	bdesc.StructureByteStride = 0;
 
-	ID3D11Buffer* buffer = nullptr;
+	ComPtr<ID3D11Buffer> buffer = nullptr;
 
-	auto hr = m_device->CreateBuffer(&bdesc, nullptr, &buffer);
+	auto hr = m_device->CreateBuffer(&bdesc, nullptr, buffer.GetAddressOf());
 
 	HR_CHECK(hr, "Could not create buffer");
 
-	resource_manager.AddBuffer(name, buffer);
+	buffer_manager.Load(name, buffer);
 }
 
 void D3D11Renderer::UpdateCosntantBuffer(const std::string& name, CBuffer& buffer)
 {
-	auto c_buffer = resource_manager.GetBuffer(name);
+	auto c_buffer = buffer_manager.Get(name).Get();
 
 	D3D11_MAPPED_SUBRESOURCE mapped_resource;
 	auto hr = m_device_context->Map(c_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource);
@@ -286,9 +286,9 @@ void D3D11Renderer::UpdateCosntantBuffer(const std::string& name, CBuffer& buffe
 
 void D3D11Renderer::LoadShader(LPCWSTR file_path, bool vertex, const std::string& name)
 {
-	ID3DBlob* blob;
+	ComPtr<ID3DBlob> blob;
 	ID3DBlob* eblob;
-	auto hr = D3DCompileFromFile(file_path, nullptr, nullptr, "main", (vertex) ? "vs_5_0" : "ps_5_0", D3DCOMPILE_DEBUG, 0, &blob, &eblob);
+	auto hr = D3DCompileFromFile(file_path, nullptr, nullptr, "main", (vertex) ? "vs_5_0" : "ps_5_0", D3DCOMPILE_DEBUG, 0, blob.GetAddressOf(), &eblob);
 
 
 	if (FAILED(hr)) {
@@ -307,31 +307,31 @@ void D3D11Renderer::LoadShader(LPCWSTR file_path, bool vertex, const std::string
 
 	if (vertex)
 	{
-		ID3D11VertexShader* vertex_shader;
-		hr = m_device->CreateVertexShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &vertex_shader);
+		ComPtr<ID3D11VertexShader> vertex_shader;
+		hr = m_device->CreateVertexShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, vertex_shader.GetAddressOf());
 
 		HR_CHECK(hr, "Could not create vertex shader");
 
-		resource_manager.AddVertexShader(name, vertex_shader);
+		vertex_shader_manager.Load(name, vertex_shader);
 
 		vblob = blob;
 	}
 	else {
-		ID3D11PixelShader* pixel_shader;
-		hr = m_device->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &pixel_shader);
+		ComPtr<ID3D11PixelShader> pixel_shader;
+		hr = m_device->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, pixel_shader.GetAddressOf());
 
 		HR_CHECK(hr, "Could not create pixel shader");
 
-		resource_manager.AddPixelShader(name, pixel_shader);
+		pixel_shader_manager.Load(name, pixel_shader);
 	}
 }
 
 template<int T>
 void D3D11Renderer::CreateInputLayout(std::array<D3D11_INPUT_ELEMENT_DESC, T> vertex_desc, const std::string& name)
 {
-	ID3D11InputLayout* input_layout;
-	auto hr = m_device->CreateInputLayout(vertex_desc.data(), T, vblob->GetBufferPointer(), vblob->GetBufferSize(), &input_layout);
+	ComPtr<ID3D11InputLayout> input_layout;
+	auto hr = m_device->CreateInputLayout(vertex_desc.data(), T, vblob->GetBufferPointer(), vblob->GetBufferSize(), input_layout.GetAddressOf());
 
 	HR_CHECK(hr, "Could not create input layout");
-	resource_manager.AddInputLayout(input_layout, name);
+	input_layout_manager.Load(name, input_layout);
 }
