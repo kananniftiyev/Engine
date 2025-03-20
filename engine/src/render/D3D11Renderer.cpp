@@ -5,6 +5,8 @@ D3D11Renderer::D3D11Renderer(uint32_t width, uint32_t height, bool vsync, HWND h
 	m_width = width;
 	m_height = height;
 	m_hwnd = hwnd;
+	this->vsync = vsync;
+
 	InitDevice();
 	InitSwapchain();
 	InitBackBuffer();
@@ -75,6 +77,8 @@ void D3D11Renderer::Start()
 
 void D3D11Renderer::Frame()
 {
+	editor_ui->frame_stats.fps = Time::FrameRate();
+	editor_ui->frame_stats.render_ms = Time::FrameTime();
 	/*auto res = Time::FrameTime();
 	std::cout << "Graphics Render Time: " << res << "\n";*/
 	static FLOAT clearColor[4] = { 0.3f, 0.5f, 0.7f, 1.0f };
@@ -121,12 +125,11 @@ void D3D11Renderer::Frame()
 
 	m_device_context->DrawIndexed(36, 0, 0);
 
-	editor_ui->frame_stats.fps = Time::FrameRate();
-	editor_ui->frame_stats.render_ms = Time::FrameTime();
+
 
 	editor_ui->Frame();
 
-	m_swapchain->Present(0, 0);
+	m_swapchain->Present(1, 0);
 }
 
 void D3D11Renderer::InitDevice()
@@ -237,6 +240,11 @@ void D3D11Renderer::InitViewport()
 	vp.MinDepth = 0.0f;
 
 	m_device_context->RSSetViewports(1, &vp);
+}
+
+void D3D11Renderer::SetVsync(bool bVsync)
+{
+	vsync = bVsync;
 }
 
 template<typename T>

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "platform/WindowsImpl.hpp"
-#include "render/D3D11Renderer.hpp"
+#include "Renderer.hpp"
 #include "utils/Time.hpp"
 #include <cstdint>
 #include <memory>
@@ -20,6 +20,7 @@ struct EngineConfig
 	uint32_t height = 600;
 	bool fullscreen = false;
 	bool vsync = true;
+	GraphicsAPI api;
 	WinEntry winEntry;
 };
 
@@ -37,7 +38,7 @@ private:
 	bool is_running;
 
 	std::unique_ptr<WindowsImpl> window;
-	std::unique_ptr<D3D11Renderer> renderer;
+	std::unique_ptr<Renderer> renderer;
 	// std::unique_ptr<EngineInputManager> input_manager;
 
 

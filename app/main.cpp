@@ -7,6 +7,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	EngineConfig config;
 	config.winEntry.hInstance = hInstance;
 	config.winEntry.nCmdShow = nCmdShow;
+	config.api = GraphicsAPI::DirectX11;
 
 	return EngineApp::Run(config);
 }

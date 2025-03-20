@@ -12,10 +12,11 @@ int Time::FrameRate()
 	frame_count++;
 
 	if (elapsed.count() >= 1.0f) {
-		current_fps = frame_count;
-		std::cout << "FPS:" << current_fps << "\n";
+		current_fps = frame_count / 2;
 		frame_count = 0;
 		last_time = now;
+
+		return current_fps;
 	}
 
 

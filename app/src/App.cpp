@@ -4,7 +4,7 @@
 
 EngineApp::EngineApp(EngineConfig& config) {
 	window = std::make_unique<WindowsImpl>(config.witdh, config.height, config.winEntry.hInstance, config.winEntry.nCmdShow);
-	renderer = std::make_unique<D3D11Renderer>(config.witdh, config.height, config.vsync, window->GetHwnd());
+	renderer = std::make_unique<Renderer>(config.api, config.witdh, config.height, config.vsync, window->GetHwnd());
 	// input_manager = std::make_unique<EngineInputManager>();
 }
 
@@ -36,7 +36,7 @@ void EngineApp::MainLoop() {
 	{
 		Time::FrameRate();
 		window->Message();
-		renderer->Frame();
+		renderer->Run();
 
 
 

@@ -3,6 +3,7 @@
 #include "imgui.h"
 #include "imgui_impl_dx11.h"
 #include "imgui_impl_win32.h"
+#include "render/IRenderer.hpp"
 #include "ResourceManager.hpp"
 #include "UIManager.hpp"
 #include "utils/Time.hpp"
@@ -40,14 +41,14 @@ struct CBuffer {
 	XMMATRIX projection;
 };
 
-class D3D11Renderer
+class D3D11Renderer : public IRenderer
 {
 public:
 	D3D11Renderer(uint32_t width, uint32_t height, bool vsync, HWND hwnd);
 	~D3D11Renderer();
 
-	void Start();
-	void Frame();
+	void Start() override;
+	void Frame() override;
 
 	ComPtr<ID3D11Device>& GetDevice();
 	ComPtr<ID3D11DeviceContext>& GetDeviceContext();
@@ -66,6 +67,9 @@ private:
 	void InitBackBuffer();
 	void InitDepth();
 	void InitViewport();
+
+	void SetVsync(bool bVsync) override;
+	bool vsync;
 
 	// Resrouces
 	ResourceManager<ID3D11Buffer> buffer_manager;
