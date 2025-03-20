@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <memory>
 #include <stdexcept>
+#include <UIManager.hpp>
 #include <Windows.h>
 
 struct WinEntry {

@@ -1,3 +1,6 @@
+#include "imgui.h"
+#include "imgui_impl_dx11.h"
+#include "imgui_impl_win32.h"
 #include "platform/WindowsImpl.hpp"
 
 bool WindowsImpl::is_window_closed = false;
@@ -46,8 +49,14 @@ void WindowsImpl::InitWindow() {
 	UpdateWindow(m_hwnd);
 }
 
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+
 LRESULT WindowsImpl::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	if (ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam))
+		return true;
+
 	switch (uMsg)
 	{
 	case WM_CLOSE:

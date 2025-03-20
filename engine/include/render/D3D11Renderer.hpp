@@ -1,6 +1,10 @@
 #pragma once
 
+#include "imgui.h"
+#include "imgui_impl_dx11.h"
+#include "imgui_impl_win32.h"
 #include "ResourceManager.hpp"
+#include "UIManager.hpp"
 #include "utils/Time.hpp"
 #include <array>
 #include <cstdint>
@@ -11,6 +15,7 @@
 #include <dxgi.h>
 #include <intsafe.h>
 #include <iostream>
+#include <memory>
 #include <queue>
 #include <stdexcept>
 #include <Windows.h>
@@ -43,6 +48,9 @@ public:
 
 	void Start();
 	void Frame();
+
+	ComPtr<ID3D11Device>& GetDevice();
+	ComPtr<ID3D11DeviceContext>& GetDeviceContext();
 
 private:
 	ComPtr<ID3D11Device> m_device;
@@ -79,6 +87,11 @@ private:
 
 	HWND m_hwnd;
 	uint32_t m_width, m_height;
+
+	std::unique_ptr<UIManager> editor_ui;
+
+
+
 
 	// TODO: Queue of objects to be rendered.
 };

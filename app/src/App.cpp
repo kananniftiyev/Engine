@@ -38,6 +38,8 @@ void EngineApp::MainLoop() {
 		window->Message();
 		renderer->Frame();
 
+
+
 		is_running = window->IsWindowClosed();
 	}
 }

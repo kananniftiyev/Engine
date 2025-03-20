@@ -1,0 +1,10 @@
+file(GLOB_RECURSE SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+file(GLOB_RECURSE HEADER_FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp)
+
+add_library (editor STATIC ${SRC_FILES} ${HEADER_FILES})
+
+target_include_directories(editor PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+
+find_package(imgui CONFIG REQUIRED)
+ target_link_libraries(editor PRIVATE imgui::imgui)

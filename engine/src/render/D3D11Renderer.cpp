@@ -10,6 +10,8 @@ D3D11Renderer::D3D11Renderer(uint32_t width, uint32_t height, bool vsync, HWND h
 	InitBackBuffer();
 	InitDepth();
 	InitViewport();
+	editor_ui = std::make_unique<UIManager>(hwnd, m_device, m_device_context);
+
 	// TODO: Depth Stencil state
 }
 
@@ -113,6 +115,8 @@ void D3D11Renderer::Frame()
 	m_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	m_device_context->DrawIndexed(36, 0, 0);
+
+	editor_ui->Frame();
 
 	m_swapchain->Present(0, 0);
 }
@@ -324,6 +328,16 @@ void D3D11Renderer::LoadShader(LPCWSTR file_path, bool vertex, const std::string
 
 		pixel_shader_manager.Load(name, pixel_shader);
 	}
+}
+
+ComPtr<ID3D11Device>& D3D11Renderer::GetDevice()
+{
+	return m_device;
+}
+
+ComPtr<ID3D11DeviceContext>& D3D11Renderer::GetDeviceContext()
+{
+	return m_device_context;
 }
 
 template<int T>

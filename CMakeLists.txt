@@ -26,3 +26,4 @@ project ("engine")
 # Include sub-projects.
 add_subdirectory ("engine")
 add_subdirectory ("app")
+add_subdirectory ("editor")

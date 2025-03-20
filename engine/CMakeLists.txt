@@ -20,5 +20,8 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(mINI)
 
+find_package(imgui CONFIG REQUIRED)
+ target_link_libraries(engine PRIVATE imgui::imgui editor)
+
 target_include_directories(engine PUBLIC ${mINI_SOURCE_DIR}/src)
 message(STATUS ${mINI_SOURCE_DIR})
