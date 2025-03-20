@@ -38,6 +38,10 @@ public:
 		return true;
 	}
 
+	int CacheCount() {
+		return m_cache.size();
+	}
+
 
 private:
 	std::unordered_map<std::string, ComPtr<T>> m_cache;

@@ -7,4 +7,6 @@ target_include_directories(editor PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 
 find_package(imgui CONFIG REQUIRED)
- target_link_libraries(editor PRIVATE imgui::imgui)
+find_package(implot CONFIG REQUIRED)
+
+target_link_libraries(editor PRIVATE imgui::imgui implot::implot)

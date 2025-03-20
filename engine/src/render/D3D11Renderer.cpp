@@ -66,6 +66,11 @@ void D3D11Renderer::Start()
 	};
 
 	CreateInputLayout<1>(vertex_desc, "object");
+
+	editor_ui->resource_stats.buffer_count = buffer_manager.CacheCount();
+	editor_ui->resource_stats.v_shader_count = vertex_shader_manager.CacheCount();
+	editor_ui->resource_stats.p_shader_count = pixel_shader_manager.CacheCount();
+	editor_ui->resource_stats.input_count = input_layout_manager.CacheCount();
 }
 
 void D3D11Renderer::Frame()
@@ -115,6 +120,9 @@ void D3D11Renderer::Frame()
 	m_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	m_device_context->DrawIndexed(36, 0, 0);
+
+	editor_ui->frame_stats.fps = Time::FrameRate();
+	editor_ui->frame_stats.render_ms = Time::FrameTime();
 
 	editor_ui->Frame();
 

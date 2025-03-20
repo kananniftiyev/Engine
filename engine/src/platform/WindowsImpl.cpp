@@ -7,9 +7,6 @@ bool WindowsImpl::is_window_closed = false;
 
 WindowsImpl::WindowsImpl(int width, int height, HINSTANCE hInstance, int nCmdShow)
 {
-	AllocConsole();
-	freopen("CONOUT$", "w", stdout);
-
 	m_width = width;
 	m_height = height;
 	m_hInstance = hInstance;
@@ -50,7 +47,6 @@ void WindowsImpl::InitWindow() {
 }
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
 
 LRESULT WindowsImpl::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
